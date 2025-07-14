@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - FileShare{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Upload Section -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Upload Files
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="upload-area mb-4">
+                    <i class="fas fa-file-upload file-icon text-primary"></i>
+                    <h5>Drag & Drop Files Here</h5>
+                    <p class="text-muted">or click to browse</p>
+                    <small class="text-muted">Maximum file size: 100GB</small>
+                </div>
+                
+                <!-- Upload Progress Section -->
+                <div id="uploadProgress" class="mb-4" style="display: none;">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-upload me-2"></i>Uploading: <span id="uploadingFileName"></span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="progress mb-2" style="height: 25px;">
+                                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" style="width: 0%">
+                                            <span id="progressText">0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span id="uploadedSize">0 MB</span>
+                                        <span id="totalSize">0 MB</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="mb-1">
+                                        <strong id="uploadSpeed">0 MB/s</strong>
+                                    </div>
+                                    <div class="small text-muted">
+                                        <span id="timeRemaining">Calculating...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button id="cancelUpload" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-times me-1"></i>Cancel Upload
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.file.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadButton">
+                        <i class="fas fa-upload me-2"></i>Upload File
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="col-lg-4">
+        <div class="card stats-card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ recent_files.count }}</h3>
+                <p class="mb-0">Recent Files</p>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>How to Use
+                </h5>
+            </div>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li>Select a file to upload</li>
+                    <li>Click the upload button</li>
+                    <li>Share the download link</li>
+                    <li>Files are automatically deleted after 30 days</li>
+                </ol>
+            </div>
+        </div>
+        <div class="mt-3">
+            <a href="{% url 'file_sharing:create_short_link' %}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-link me-2"></i>Custom Short URL
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Files Section -->
+{% if recent_files %}
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Recently Uploaded Files
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for file in recent_files %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card file-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-file text-primary me-2"></i>
+                                    <h6 class="card-title mb-0 text-truncate">{{ file.filename }}</h6>
+                                </div>
+                                <p class="card-text small text-muted">
+                                    <i class="fas fa-weight-hanging me-1"></i>{{ file.get_file_size_mb }} MB<br>
+                                    <i class="fas fa-download me-1"></i>{{ file.download_count }} downloads<br>
+                                    <i class="fas fa-calendar me-1"></i>{{ file.uploaded_at|date:"M d, Y" }}
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'file_sharing:download_file' file.unique_id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download me-1"></i>Download
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-secondary" 
+                                            onclick="copyLink('{{ request.build_absolute_uri }}{% url 'file_sharing:download_file' file.unique_id %}')">
+                                        <i class="fas fa-link me-1"></i>Copy Link
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'file_sharing:file_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>View All Files
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Upload variables
+let currentUpload = null;
+let uploadStartTime = null;
+let lastUploadedBytes = 0;
+let uploadSpeed = 0;
+let speedUpdateInterval = null;
+
+// Utility functions
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatSpeed(bytesPerSecond) {
+    return formatBytes(bytesPerSecond) + '/s';
+}
+
+function formatTime(seconds) {
+    if (seconds < 60) return Math.round(seconds) + 's';
+    if (seconds < 3600) return Math.round(seconds / 60) + 'm ' + Math.round(seconds % 60) + 's';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+    return hours + 'h ' + minutes + 'm';
+}
+
+// Copy link to clipboard
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.innerHTML = `
+            <i class="fas fa-check me-2"></i>Link copied to clipboard!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        
+        // Remove alert after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    });
+}
+
+// Upload progress tracking
+function updateProgress(uploadedBytes, totalBytes, speed) {
+    const progress = (uploadedBytes / totalBytes) * 100;
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const uploadedSize = document.getElementById('uploadedSize');
+    const totalSize = document.getElementById('totalSize');
+    const uploadSpeed = document.getElementById('uploadSpeed');
+    
+    progressBar.style.width = progress + '%';
+    progressText.textContent = Math.round(progress) + '%';
+    uploadedSize.textContent = formatBytes(uploadedBytes);
+    totalSize.textContent = formatBytes(totalBytes);
+    uploadSpeed.textContent = formatSpeed(speed);
+    
+    // Calculate time remaining
+    if (speed > 0) {
+        const remainingBytes = totalBytes - uploadedBytes;
+        const timeRemaining = remainingBytes / speed;
+        document.getElementById('timeRemaining').textContent = formatTime(timeRemaining);
+    }
+}
+
+// Chunked upload function
+async function uploadFileInChunks(file) {
+    const chunkSize = 1024 * 1024; // 1MB chunks
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const fileId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    let uploadedBytes = 0;
+    uploadStartTime = Date.now();
+    lastUploadedBytes = 0;
+    
+    // Show progress section
+    document.getElementById('uploadProgress').style.display = 'block';
+    document.getElementById('uploadingFileName').textContent = file.name;
+    document.getElementById('uploadButton').disabled = true;
+    
+    // Start speed calculation
+    speedUpdateInterval = setInterval(() => {
+        const now = Date.now();
+        const timeDiff = (now - uploadStartTime) / 1000;
+        const bytesDiff = uploadedBytes - lastUploadedBytes;
+        uploadSpeed = bytesDiff / timeDiff;
+        lastUploadedBytes = uploadedBytes;
+        uploadStartTime = now;
+    }, 1000);
+    
+    try {
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            if (currentUpload && currentUpload.cancelled) {
+                throw new Error('Upload cancelled');
+            }
+            
+            const start = chunkIndex * chunkSize;
+            const end = Math.min(start + chunkSize, file.size);
+            const chunk = file.slice(start, end);
+            
+            const formData = new FormData();
+            formData.append('chunk', chunk);
+            formData.append('file_id', fileId);
+            formData.append('chunk_number', chunkIndex);
+            formData.append('total_chunks', totalChunks);
+            formData.append('filename', file.name);
+            formData.append('file_size', file.size);
+            formData.append('file_type', file.type || 'application/octet-stream');
+            
+            const response = await fetch('{% url "file_sharing:chunked_upload" %}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            
+            uploadedBytes += chunk.size;
+            updateProgress(uploadedBytes, file.size, uploadSpeed);
+        }
+        
+        // Upload completed
+        clearInterval(speedUpdateInterval);
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadButton').disabled = false;
+        
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="fas fa-check me-2"></i>File "${file.name}" uploaded successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+        
+        // Reload page after 2 seconds to show the new file
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+        
+    } catch (error) {
+        clearInterval(speedUpdateInterval);
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadButton').disabled = false;
+        
+        // Show error message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2"></i>Upload failed: ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+    }
+}
+
+// Cancel upload
+document.getElementById('cancelUpload').addEventListener('click', function() {
+    if (currentUpload) {
+        currentUpload.cancelled = true;
+        clearInterval(speedUpdateInterval);
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadButton').disabled = false;
+    }
+});
+
+// Enhanced form submission
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select a file to upload.');
+        return;
+    }
+    
+    // For files larger than 50MB, use chunked upload
+    if (file.size > 50 * 1024 * 1024) {
+        currentUpload = { cancelled: false };
+        uploadFileInChunks(file);
+    } else {
+        // For smaller files, use regular form submission
+        this.submit();
+    }
+});
+
+// Drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.querySelector('.upload-area');
+    const fileInput = document.querySelector('input[type="file"]');
+    
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#0056b3';
+        uploadArea.style.backgroundColor = '#e9ecef';
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#007bff';
+        uploadArea.style.backgroundColor = '#f8f9fa';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#007bff';
+        uploadArea.style.backgroundColor = '#f8f9fa';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            // Trigger form submission
+            document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
+        }
+    });
+});
+</script>
+{% endblock %} 

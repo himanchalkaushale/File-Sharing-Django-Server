@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}Files - FileShare{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-primary d-flex align-items-center" role="alert">
+            <i class="fas fa-download me-2"></i>
+            <strong>Total Downloads:</strong> {{ total_downloads }}
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-list me-2"></i>All Files
+                </h4>
+                <span class="badge bg-light text-dark">{{ total_files }} files</span>
+            </div>
+            <div class="card-body">
+                <!-- Search Bar -->
+                <form method="get" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Search files by name or type..." 
+                               value="{{ search_query }}">
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        {% if search_query %}
+                            <a href="{% url 'file_sharing:file_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        {% endif %}
+                    </div>
+                </form>
+
+                <!-- Files Table -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>File</th>
+                                    <th>Size</th>
+                                    <th>Type</th>
+                                    <th>Uploaded</th>
+                                    <th>Downloads</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in page_obj %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-file text-primary me-2"></i>
+                                            <div>
+                                                <strong>{{ file.filename|truncatechars:40 }}</strong>
+                                                <br>
+                                                <small class="text-muted">ID: {{ file.unique_id|truncatechars:8 }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if file.file_size > 1048576 %}
+                                            {{ file.get_file_size_mb }} MB
+                                        {% else %}
+                                            {{ file.get_file_size_kb }} KB
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ file.file_type|truncatechars:20 }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ file.uploaded_at|date:"M d, Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ file.download_count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'file_sharing:download_file' file.unique_id %}" 
+                                               class="btn btn-outline-primary" title="Download">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary" 
+                                                    onclick="copyLink('{{ request.build_absolute_uri }}{% url 'file_sharing:download_file' file.unique_id %}')"
+                                                    title="Copy Link">
+                                                <i class="fas fa-link"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="confirmDelete('{{ file.unique_id }}', '{{ file.filename }}')"
+                                                    title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="File pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3 text-muted">No files found</h4>
+                        {% if search_query %}
+                            <p class="text-muted">No files match your search criteria.</p>
+                            <a href="{% url 'file_sharing:file_list' %}" class="btn btn-primary">
+                                <i class="fas fa-list me-2"></i>View All Files
+                            </a>
+                        {% else %}
+                            <p class="text-muted">Upload your first file to get started!</p>
+                            <a href="{% url 'file_sharing:home' %}" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>Upload File
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="fileName"></strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="deleteForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Copy link to clipboard
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.innerHTML = `
+            <i class="fas fa-check me-2"></i>Link copied to clipboard!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        
+        // Remove alert after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    });
+}
+
+// Confirm delete
+function confirmDelete(fileId, fileName) {
+    document.getElementById('fileName').textContent = fileName;
+    document.getElementById('deleteForm').action = `/delete/${fileId}/`;
+    
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+</script>
+{% endblock %} 

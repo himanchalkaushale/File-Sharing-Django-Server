@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistics - FileShare{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-md-4 mb-4">
+        <div class="card stats-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-file fa-3x mb-3"></i>
+                <h2 class="mb-0">{{ total_files }}</h2>
+                <p class="mb-0">Total Files</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card stats-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-download fa-3x mb-3"></i>
+                <h2 class="mb-0">{{ total_downloads }}</h2>
+                <p class="mb-0">Total Downloads</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card stats-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-hdd fa-3x mb-3"></i>
+                <h2 class="mb-0">{{ total_size_mb }} MB</h2>
+                <p class="mb-0">Total Storage Used</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- File Type Statistics -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>File Types Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if file_types %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>File Type</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file_type in file_types %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ file_type.file_type|truncatechars:20 }}</span>
+                                    </td>
+                                    <td>{{ file_type.count }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ file_type.percentage }}%">
+                                                {{ file_type.percentage }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No file type data available</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if total_files > 0 %}
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-upload text-primary me-2"></i>
+                                <strong>Files Uploaded</strong>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ total_files }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-download text-success me-2"></i>
+                                <strong>Files Downloaded</strong>
+                            </div>
+                            <span class="badge bg-success rounded-pill">{{ total_downloads }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-hdd text-info me-2"></i>
+                                <strong>Storage Used</strong>
+                            </div>
+                            <span class="badge bg-info rounded-pill">{{ total_size_mb }} MB</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-chart-line text-warning me-2"></i>
+                                <strong>Avg Downloads/File</strong>
+                            </div>
+                            <span class="badge bg-warning rounded-pill">
+                                {% if total_files > 0 %}
+                                    {{ avg_downloads_per_file }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No activity data available</p>
+                        <a href="{% url 'file_sharing:home' %}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload Your First File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-server me-2"></i>System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-shield-alt text-success me-2"></i>Security Features</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-1"></i>File type validation</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Unique file IDs</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Secure file storage</li>
+                            <li><i class="fas fa-check text-success me-1"></i>Automatic cleanup</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-cogs text-primary me-2"></i>Technical Details</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-info-circle text-info me-1"></i>Max file size: 100GB</li>
+                            <li><i class="fas fa-info-circle text-info me-1"></i>Supported formats: All</li>
+                            <li><i class="fas fa-info-circle text-info me-1"></i>Auto-delete: 30 days</li>
+                            <li><i class="fas fa-info-circle text-info me-1"></i>API available</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}File Not Found{% endblock %}
+
+{% block content %}
+<style>
+  nav, .navbar, .footer, .sidebar, .topbar { display: none !important; }
+  body { overflow: hidden; }
+</style>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm text-center">
+                <div class="card-body py-5">
+                    <i class="fas fa-unlink fa-4x text-danger mb-4"></i>
+                    <h2 class="mb-3">File Deleted or No Longer Exists</h2>
+                    <p class="lead">The file you are trying to access with this short link (<code>{{ code }}</code>) has been deleted or is no longer available.</p>
+                    <p class="text-muted">You cannot proceed further. Please close this tab or window.</p>
+                    <button class="btn btn-danger mt-3" onclick="window.close();">Close Tab</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Disable back navigation
+history.pushState(null, document.title, location.href);
+window.addEventListener('popstate', function (event) {
+  history.pushState(null, document.title, location.href);
+});
+// Optionally, disable all keyboard shortcuts
+window.onkeydown = function(e) {
+  // Block F5, Ctrl+R, Alt+Left/Right, Backspace
+  if ([116, 82, 8].includes(e.keyCode) || (e.ctrlKey && e.keyCode === 82) || (e.altKey && (e.keyCode === 37 || e.keyCode === 39))) {
+    e.preventDefault();
+    return false;
+  }
+};
+</script>
+{% endblock %} 

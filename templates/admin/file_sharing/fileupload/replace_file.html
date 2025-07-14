@@ -1,0 +1,147 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .replace-file-form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .file-info {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+    .file-info h3 {
+        margin-top: 0;
+        color: #495057;
+    }
+    .file-info p {
+        margin: 5px 0;
+    }
+    .file-info strong {
+        color: #495057;
+    }
+    .upload-section {
+        margin: 20px 0;
+        padding: 20px;
+        background: #e8f4fd;
+        border-radius: 5px;
+        border: 2px dashed #007bff;
+    }
+    .upload-section h4 {
+        margin-top: 0;
+        color: #007bff;
+    }
+    .file-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 10px 0;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-danger:hover {
+        background: #c82333;
+    }
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+    .warning-box h4 {
+        margin-top: 0;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="replace-file-form">
+    <h2>Replace File: {{ file_obj.filename }}</h2>
+    
+    <div class="file-info">
+        <h3>Current File Information</h3>
+        <p><strong>Filename:</strong> {{ file_obj.filename }}</p>
+        <p><strong>Size:</strong> {{ file_obj.get_file_size_mb }} MB</p>
+        <p><strong>Type:</strong> {{ file_obj.file_type }}</p>
+        <p><strong>Uploaded:</strong> {{ file_obj.uploaded_at|date:"F j, Y, g:i a" }}</p>
+        <p><strong>Downloads:</strong> {{ file_obj.download_count }}</p>
+        <p><strong>Status:</strong> {% if file_obj.is_active %}Active{% else %}Inactive{% endif %}</p>
+    </div>
+    
+    <div class="warning-box">
+        <h4>⚠️ Important Notice</h4>
+        <p>Replacing this file will:</p>
+        <ul>
+            <li>Permanently delete the current file from the server</li>
+            <li>Update the filename, size, and type automatically</li>
+            <li>Keep the same unique ID and download count</li>
+            <li>Maintain the same upload date</li>
+        </ul>
+        <p><strong>This action cannot be undone!</strong></p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="upload-section">
+            <h4>📁 Select New File</h4>
+            <p>Choose the file you want to replace the current one with:</p>
+            <input type="file" name="new_file" class="file-input" required>
+            <p><small>Maximum file size: 100 GB</small></p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">
+                🔄 Replace File
+            </button>
+            <a href="{% url 'admin:file_sharing_fileupload_change' file_obj.id %}" class="btn btn-secondary">
+                ❌ Cancel
+            </a>
+        </div>
+    </form>
+    
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="{% url 'admin:file_sharing_fileupload_changelist' %}" class="btn btn-secondary">
+            📋 Back to File List
+        </a>
+    </div>
+</div>
+{% endblock %} 

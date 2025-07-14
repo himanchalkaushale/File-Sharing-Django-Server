@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Short Link Created{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>Short Link Created!</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">Your custom short link:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control text-center" id="shortLinkInput" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'file_sharing:resolve_short_link' short_link.code %}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyShortLink()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <a href="{{ short_link.target_url }}" class="btn btn-primary w-100 mb-2" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>Visit Target Link
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary w-100">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function copyShortLink() {
+    var copyText = document.getElementById("shortLinkInput");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand("copy");
+    alert("Short link copied: " + copyText.value);
+}
+</script>
+{% endblock %} 

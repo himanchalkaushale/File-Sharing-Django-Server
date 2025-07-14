@@ -1,0 +1,134 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    /* Dark Theme for File Actions Box */
+    .file-actions {
+        margin: 20px 0;
+        padding: 20px;
+        background: #212529; /* Dark background */
+        color: #f8f9fa; /* Light text */
+        border: 1px solid #495057;
+        border-radius: 8px;
+    }
+    .file-actions h3 {
+        margin-top: 0;
+        color: #fff; /* White heading */
+        border-bottom: 1px solid #495057;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    .file-actions h3 .fa-cogs {
+        margin-right: 10px;
+    }
+
+    /* Info Box inside Actions */
+    .file-info {
+        margin: 15px 0;
+        padding: 15px;
+        background: #343a40; /* Slightly lighter dark shade */
+        border-radius: 4px;
+        color: #dee2e6; /* Light grey text */
+        line-height: 1.6;
+    }
+    .file-info strong {
+        color: #fff; /* White for strong text */
+    }
+
+    /* Buttons inside Actions */
+    .file-action-btn {
+        display: inline-flex; /* Use flex for alignment */
+        align-items: center;
+        gap: 8px; /* Space between icon and text */
+        margin: 5px 10px 5px 0;
+        padding: 10px 20px;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    .file-action-btn:hover { text-decoration: none; color: white; }
+    .file-action-btn.download { background: #198754; }
+    .file-action-btn.download:hover { background: #157347; }
+    .file-action-btn.replace { background: #0d6efd; }
+    .file-action-btn.replace:hover { background: #0b5ed7; }
+    .file-action-btn.deactivate { background: #dc3545; }
+    .file-action-btn.deactivate:hover { background: #c82333; }
+    .file-action-btn.back { background: #6c757d; }
+    .file-action-btn.back:hover { background: #5a6268; }
+
+    /* Admin Tips Box */
+    .admin-tips {
+        margin-top: 20px; padding: 15px; background: #f8f9fa;
+        border-left: 5px solid #ffc107; border-radius: 5px; color: #212529;
+    }
+    .admin-tips h4 {
+        margin-top: 0; margin-bottom: 10px; color: #212529; font-weight: 600;
+        display: flex; align-items: center;
+    }
+    .admin-tips h4 .fa-lightbulb { margin-right: 10px; color: #ffc107; }
+</style>
+{% endblock %}
+
+{% block field_sets %}
+    {% if original %}
+    <div class="file-actions">
+        <h3><i class="fas fa-cogs"></i> File Actions</h3>
+        <div class="file-info">
+            <strong>Current File:</strong> {{ original.filename }}<br>
+            <strong>Size:</strong> {{ original.get_file_size_mb }} MB<br>
+            <strong>Type:</strong> {{ original.file_type }}<br>
+            <strong>Downloads:</strong> {{ original.download_count }}<br>
+            <strong>Status:</strong> {% if original.is_active %}Active{% else %}Inactive{% endif %}
+        </div>
+        
+        <a href="{% url 'admin:file_sharing_fileupload_download' original.id %}" class="file-action-btn download">
+            <i class="fas fa-download"></i> Download File
+        </a>
+        
+        <a href="{% url 'admin:file_sharing_fileupload_replace_file' original.id %}" class="file-action-btn replace">
+            <i class="fas fa-exchange-alt"></i> Replace File
+        </a>
+        
+        {% if original.is_active %}
+            <a href="?action=deactivate" class="file-action-btn deactivate">
+                <i class="fas fa-times-circle"></i> Deactivate
+            </a>
+        {% else %}
+            <a href="?action=activate" class="file-action-btn download">
+                <i class="fas fa-check-circle"></i> Activate
+            </a>
+        {% endif %}
+        
+        <a href="{% url 'admin:file_sharing_fileupload_changelist' %}" class="file-action-btn back">
+            <i class="fas fa-list"></i> Back to List
+        </a>
+    </div>
+    {% endif %}
+    
+    {{ block.super }}
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    {% if original %}
+    <div class="admin-tips">
+        <h4><i class="fas fa-lightbulb"></i> Quick Tips:</h4>
+        <ul>
+            <li><strong>Edit Metadata:</strong> You can modify the filename and active status above.</li>
+            <li><strong>Replace File:</strong> Use the "Replace File" button to upload a new version.</li>
+            <li><strong>Download:</strong> Use the "Download File" button to get the current file.</li>
+            <li><strong>File Size/Type:</strong> These are automatically updated when you replace the file.</li>
+        </ul>
+    </div>
+    {% endif %}
+{% endblock %} 

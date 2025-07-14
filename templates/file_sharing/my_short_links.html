@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}My Short Links{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-link me-2"></i>My Short Links</h4>
+                    <a href="{% url 'file_sharing:create_short_link' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> New Short Link
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if page_obj.object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Short Link</th>
+                                        <th>Target URL</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for link in page_obj.object_list %}
+                                    <tr>
+                                        <td><span class="badge bg-info">{{ link.code }}</span></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm text-center" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'file_sharing:resolve_short_link' link.code %}" readonly id="shortLinkInput{{ forloop.counter }}">
+                                        </td>
+                                        <td class="text-break"><a href="{{ link.target_url }}" target="_blank">{{ link.target_url|truncatechars:50 }}</a></td>
+                                        <td><small>{{ link.created_at|date:"M d, Y H:i" }}</small></td>
+                                        <td>
+                                            <button class="btn btn-outline-secondary btn-sm mb-1" onclick="copyShortLink('shortLinkInput{{ forloop.counter }}')">
+                                                <i class="fas fa-copy"></i> Copy
+                                            </button>
+                                            <a href="{{ link.target_url }}" class="btn btn-outline-primary btn-sm mb-1" target="_blank">
+                                                <i class="fas fa-external-link-alt"></i> Visit
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Short link pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                                    </li>
+                                {% endif %}
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% else %}
+                        <div class="alert alert-info text-center mb-0">
+                            <i class="fas fa-info-circle me-2"></i>No short links found. <a href="{% url 'file_sharing:create_short_link' %}">Create one now</a>!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function copyShortLink(inputId) {
+    var copyText = document.getElementById(inputId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Short link copied: " + copyText.value);
+}
+</script>
+{% endblock %} 

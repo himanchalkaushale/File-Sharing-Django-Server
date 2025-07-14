@@ -1,0 +1,52 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000; /* Completely black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#snake-container {
+    position: relative;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    border: none; /* Remove border */
+    background-color: transparent; /* Transparent background */
+    overflow: hidden;
+}
+
+.snake-segment {
+    position: absolute;
+    width: 28px; /* Adjusted width for a more distinct vertebra */
+    height: 10px; /* Adjusted height */
+    background-color: #fff; /* White color for skeleton */
+    border-radius: 50%; /* Make segments more circular/oval */
+    box-sizing: border-box;
+    border: none;
+    transform-origin: center center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 3px rgba(255, 255, 255, 0.2); /* Subtle glow */
+}
+
+
+#snake-head-image {
+    position: absolute;
+    width: 65px; /* Fixed width for the snake head image */
+    height: 50px; /* Fixed height for the snake head image */
+    transform-origin: center center;
+    z-index: 10;
+}
+
+.snake-rib {
+    position: absolute;
+    width: 4px; /* Wider ribs */
+    height: 30px; /* Longer ribs for more curve */
+    background-color: #fff; /* White color for ribs */
+    border-radius: 2px; /* Rounded ends */
+    transform-origin: center center; /* Pivot from the center */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.4); /* Subtle glow */
+}
