@@ -21,7 +21,7 @@ A Django-based web application for easy file sharing on local networks or the in
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
+   git clone https://github.com/himanchalkaushale/File-Sharing-Django-Server.git
    cd File-Sharing-Web
    ```
 
